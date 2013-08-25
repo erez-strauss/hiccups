@@ -1,0 +1,41 @@
+
+Hiccups
+
+In real time application and other time sensitive application it is crucial to have 100% of the CPU's cycles to the application.
+In many cases there are interferences of different kinds, even if we isolate CPU cores for application.
+
+The hiccups applican is an accurate measurement tool to detect those intereferences from different sources.
+
+It runs on the requested cpus, and gets the hardware timestamp counter in tight loop, and check what is the time difference from the previous sample. For these differences it stores the minimum, maximum, number of samples, and histogram.
+
+
+
+How to use:
+
+Compile:
+
+Run:
+
+Simplest form
+
+hiccups
+ - will run on the isolated cpus (isolcpus=.... in kernel command line /proc/cmdline)
+ - will run three seconds
+ - will report only the minimum,maximum,average per core.
+
+
+hiccups -t 60 -c 3,4-31 -r 200
+ - will run on cpu cores: 3,4-31
+ - will run 60 seconds
+ - will report histogram with resolution of 200 nano-seconds
+
+
+Thanks:
+
+ Many thanks to all of those who used earlier versions and provided their feedback
+
+Feedback:
+
+ The hiccups project was written by Erez Strauss <erez@erezstrauss.com>
+ Please send feedback and/or requests to the above email with "[hiccups] ..." in the subject.
+ It is hosted on github: hithub.com/erez-strauss/hiccups
