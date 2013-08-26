@@ -9,7 +9,7 @@
 // Compile:
 //  g++ -pthread -O3 -W -Wall -o hiccups hiccups.cpp -lpthread
 //
-// Author: Erez Strauss <erez@erezstrauss.com>, 2010 - 2013 (C)
+// Author: Erez Strauss <erez@erezstrauss.com>, Copyright (C) 2010 - 2013
 //
 
 #include <stdio.h>
@@ -22,7 +22,7 @@
 #include <sys/time.h>
 #include <pthread.h>
 #include <sched.h>
-#include <sys/syscall.h> // needed for gettid()
+#include <sys/syscall.h>
 #include <ctype.h>
 
 #define MILLIS_IN_SEC (1000UL)
@@ -31,7 +31,6 @@
 
 using namespace std;
 
-// Generic utility functions:
 #define rdtsc() ({ register uint32_t lo, hi;			\
       __asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));	\
       (uint64_t)hi << 32 | lo; })
@@ -54,11 +53,10 @@ const int BlockSize = (2*1024*1024);
 #define HPGSZ(SZ) (((SZ)/BlockSize+1)*BlockSize)
 
 struct SysCpuInfo {
-  //  int     cpu2sock_[MaxCpuCores];
   int     maxcpus_;
-  uint	  ccpermicro_;			// CPU Cycles, from /proc/cpuinfo
+  uint	  ccpermicro_;
   uint    ccpermilli_;
-  ulong   ccpersec_;          		// calc by avg cc per sec
+  ulong   ccpersec_;
 
   void  init();
   void  getisolcpu();
@@ -75,9 +73,6 @@ struct ThrdStart {
   uint64_t      rv_;
 };
 
-//  const int MaxHiccup = 250; 	// max length of Hiccup in microseconds
-//  int Param_NSperBin = 200; 	// how many nano-seconds per bin, dictated by requested resolution
-//  int Param_CCperBin = 0;	// CPU cycles per bin, base on cpu clock rate and NSperBin
 struct HiccupConfig {
   int runtime_;			// Total run time, in seconds.
   int resolution_;		// nano-seconds per bin, 200ns, 1/5us.
@@ -127,7 +122,6 @@ struct HiccupsInfo 	// Hiccup Detection Thread
   enum { RSERROR, RSWAIT, RSRUN, RSSTOP, RSEXIT };
   uint64_t run();
   void print_us();
-  void print_cc();
 
   static void* runthread(void* vp);
 
@@ -244,7 +238,6 @@ uint64_t HiccupsInfo::run() {
   if (id_)
     ccend += 500 * syscpus.ccpermicro_;
   while (runstate_ == RSRUN) {
-    // __sync_synchronize();  // memory barrier
     cc = rdtsc();
     if (cc > ccend)
       break;
@@ -293,7 +286,7 @@ uint64_t HiccupsInfo::run() {
   return ccend - ccstart;
 }
 
-void HiccupsInfo::print_us() // print in micro seconds.
+void HiccupsInfo::print_us()
 {
   fprintf(stdout,
 	  "thread#: %d core#: %d samples: %ld  avg: %.4f min: %.4f (@%ld) max: %.4f (@%ld) cycles: %lu start: %lu end: %lu\n",
@@ -323,10 +316,6 @@ void HiccupsInfo::print_us() // print in micro seconds.
     }
     fprintf(stdout, "\n");
   }
-}
-
-void HiccupsInfo::print_cc() // print in cpu cycles
-{
 }
 
 static const char* usagestr =
@@ -379,6 +368,10 @@ int main(int argc, char** argv)
   }
 
   conf.init();
+  if (conf.maxcpus_ < 1) {
+  	fprintf(stderr, "could not find isolcpus=.. and no cpus '-c' defined on command line\n%s\n", usagestr);
+  	exit(1);
+  }
   runoncpu(conf.cpus_[0]);
   fprintf(stdout, "main thread on cpu core#: %d\n", conf.cpus_[0]);
   conf.print();
