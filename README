@@ -8,7 +8,42 @@ The hiccups applican is an accurate measurement tool to detect those intereferen
 
 It runs on the requested cpus, and gets the hardware timestamp counter in tight loop, and check what is the time difference from the previous sample. For these differences it stores the minimum, maximum, number of samples, and histogram.
 
+Program output:
 
+Per thread the program will print:
+
+         S1       S2            S3            S4          S5      S6           S7         S8              S9               S10                  S11
+         |        |             |             |           |       |            |          |               |                |                    |   
+thread#: 0 core#: 1 samples: 1654599  avg: 3.0218 min: 0.0010 (@769253) max: 6102.9484 (@1490) cycles: 10085426457 start: 21322780850491 end: 21332866276948
+  [000.00-000.20): 774            1653825            0.04678%(  0.04678)   0.00087%(  0.00087)
+  [000.20-000.40): 353            1653472            0.02133%(  0.06811)   0.00216%(  0.00303)
+  [000.40-000.60): 336            1653136            0.02031%(  0.08842)   0.00337%(  0.00640)
+         |          |               |                    |        |            |         |
+         D1         D2              D3                   D4       D5           D6        D7
+
+where:
+Summary:
+  S1 - the thread number,
+  S2 - the core on which the thread was running.
+  S3 - How many samples were collected by that thread
+  S4 - Average time per sample [mico-seconds]
+  S5 - the fastest sample
+  S6 - sample# for fastest sample
+  S7 - the longest time gap between samples, the goal of the system tuning is to get this number to the lowest possible number!
+  S8 - sample# for longest sample, can detect issues that are common to multiple threads/cores
+  S9 - how many cpu cycles the thread was active
+  S10, S11 - Start ,end of by cpu cycles
+
+Details:
+  The measurements details are printed as historam, empty bins are skipped.
+  D1 - Histogram range [micro-seconds]
+  D2 - Number of samples in the bin.
+  D3 - Number of samples in all bins above this bin, D2[0..N] + D3[N] is the total number of samples
+  D4 - Percent of the samples in this bin
+  D5 - Percent of samples longer then this bin time range
+  D6 - Percent of the measurement time spent by the samples in this bin
+  D7 - Percent of the measurement time spent by samples longer then this time range
+ 
 
 How to use:
 
