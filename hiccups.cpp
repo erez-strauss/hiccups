@@ -225,15 +225,23 @@ uint64_t HiccupsInfo::run() {
     if (sched_setscheduler(gettid(), conf.policy_, &sp))
       perror("set scheduler");
   }
-  if (cpuid_ != conf.cpus_[0]) {
+  if (id_) {
     __sync_add_and_fetch(&active_, 1);
-    while (runstate_ == RSWAIT)
+    while (runstate_ != RSRUN)
       ;
   }
-  else
+  else {
+    while (1) {
+      int z = active_;
+      __sync_synchronize();
+      if (z >= conf.maxcpus_ - 1)
+        break;
+      usleep(2000);
+    }
     runstate_ = RSRUN;
+  }
   ccend = (lcc = cc = ccstart = startcc_ = rdtsc()) + conf.runtime_ * syscpus.ccpersec_;
-  if (cpuid_ != conf.cpus_[0])
+  if (id_)
     ccend += 500 * syscpus.ccpermicro_;
   while (runstate_ == RSRUN) {
     // __sync_synchronize();  // memory barrier
@@ -269,7 +277,7 @@ uint64_t HiccupsInfo::run() {
   if (conf.priority_ && sched_setscheduler(gettid(), SCHED_OTHER, &sp))
     perror("reset priority failed");
 
-  if (cpuid_ != conf.cpus_[0]) {
+  if (id_) {
     __sync_sub_and_fetch(&active_, 1);
   } else {
     runstate_ = RSSTOP;
@@ -278,7 +286,7 @@ uint64_t HiccupsInfo::run() {
     runstate_ = RSEXIT;
   }
   avg_ = samples_ ? (tsum / samples_) : 0;
-  if (cpuid_ == conf.cpus_[0])
+  if (id_ == 0)
     runstate_ = RSEXIT;
 
   usleep((cpuid_+1)*3000);
