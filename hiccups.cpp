@@ -16,6 +16,7 @@
 #include <sched.h>
 #include <sys/mman.h>
 #include <sys/resource.h>
+#include <sys/syscall.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <x86intrin.h>
@@ -35,6 +36,7 @@
 #include <mutex>
 #include <thread>
 #include <vector>
+#include <array>
 
 namespace hiccups {
 
@@ -75,6 +77,7 @@ inline S& operator<<(SyncAccess<S, N>&& sa, const T (&d)[DN])
 
 inline uint64_t rdtsc() { return __rdtsc(); }
 inline void     runoncpu(int cpu);
+static inline pid_t gettid() { return syscall(__NR_gettid); }
 
 pid_t mytid()
 {
